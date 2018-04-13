@@ -16,7 +16,7 @@ def get_argparse(subparsers):
     schedule_parser.add_argument(
         '-f', '--frequency',
         choices=('daily', 'weekly'),
-        default='daily',
+        default='weekly',
         help='how often to schedule posts',
     )
     schedule_parser.add_argument(
