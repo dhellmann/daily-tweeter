@@ -1,5 +1,7 @@
 import argparse
+import logging
 import os.path
+import sys
 
 import appdirs
 
@@ -18,7 +20,20 @@ def main():
         default=default_config_dir,
         help='location of configuration file',
     )
+    parser.add_argument(
+        '-v',
+        action='store_true',
+        dest='verbose',
+        default=False,
+        help='turn on verbose output',
+    )
     args = parser.parse_args()
+
+    logging.basicConfig(
+        level=logging.DEBUG if args.verbose else logging.INFO,
+        format='%(message)s',
+        stream=sys.stdout,
+    )
 
     try:
         cfg = config.load_config(args.config_file)
