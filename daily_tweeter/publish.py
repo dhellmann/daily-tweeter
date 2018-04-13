@@ -1,13 +1,42 @@
 import datetime
 import logging
+import os.path
 
 from daily_tweeter import client
 from daily_tweeter import config
 from daily_tweeter import posts
 
+import appdirs
 import tweepy
 
 LOG = logging.getLogger(__name__)
+
+
+def get_argparse(subparsers):
+    default_config_dir = os.path.join(
+        appdirs.user_config_dir('daily-tweeter'),
+        'config.ini',
+    )
+    publish_parser = subparsers.add_parser(
+        'publish', help='publish a tweet',
+    )
+    publish_parser.add_argument(
+        '-c', '--config-file',
+        default=default_config_dir,
+        help='location of configuration file',
+    )
+    publish_parser.add_argument(
+        '--repost-prefix',
+        default='Reposting:',
+        help='prefix for reposting',
+    )
+    publish_parser.add_argument(
+        'schedule_file',
+        help='location of schedule file containing posts',
+    )
+    publish_parser.set_defaults(
+        func=do_publish,
+    )
 
 
 def safe_tweet(twitter, status, dupe_ok=True):

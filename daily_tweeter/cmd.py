@@ -1,6 +1,5 @@
 import argparse
 import logging
-import os.path
 import sys
 
 from daily_tweeter import client
@@ -8,16 +7,10 @@ from daily_tweeter import config
 from daily_tweeter import publish
 from daily_tweeter import schedule
 
-import appdirs
-
 LOG = logging.getLogger(__name__)
 
 
 def main():
-    default_config_dir = os.path.join(
-        appdirs.user_config_dir('daily-tweeter'),
-        'config.ini',
-    )
     parser = argparse.ArgumentParser()
     parser.add_argument(
         '-v',
@@ -34,52 +27,8 @@ def main():
     )
 
     subparsers = parser.add_subparsers(help='commands')
-
-    publish_parser = subparsers.add_parser(
-        'publish', help='publish a tweet',
-    )
-    publish_parser.add_argument(
-        '-c', '--config-file',
-        default=default_config_dir,
-        help='location of configuration file',
-    )
-    publish_parser.add_argument(
-        '--repost-prefix',
-        default='Reposting:',
-        help='prefix for reposting',
-    )
-    publish_parser.add_argument(
-        'schedule_file',
-        help='location of schedule file containing posts',
-    )
-    publish_parser.set_defaults(
-        func=publish.do_publish,
-    )
-
-    schedule_parser = subparsers.add_parser(
-        'schedule', help='build a schedule file',
-    )
-    schedule_parser.add_argument(
-        '-f', '--frequency',
-        choices=('daily', 'weekly'),
-        default='daily',
-        help='how often to schedule posts',
-    )
-    schedule_parser.add_argument(
-        'start_date',
-        help='first date to publish, as YYYY-MM-DD',
-    )
-    schedule_parser.add_argument(
-        'post_file',
-        help='file containing plain posts',
-    )
-    schedule_parser.add_argument(
-        'schedule_file',
-        help='location to write schedule file',
-    )
-    schedule_parser.set_defaults(
-        func=schedule.do_schedule,
-    )
+    publish.get_argparse(subparsers)
+    schedule.get_argparse(subparsers)
 
     args = parser.parse_args()
 

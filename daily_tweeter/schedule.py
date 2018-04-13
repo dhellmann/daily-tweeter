@@ -8,6 +8,33 @@ import yaml
 LOG = logging.getLogger(__name__)
 
 
+def get_argparse(subparsers):
+    schedule_parser = subparsers.add_parser(
+        'schedule', help='build a schedule file',
+    )
+    schedule_parser.add_argument(
+        '-f', '--frequency',
+        choices=('daily', 'weekly'),
+        default='daily',
+        help='how often to schedule posts',
+    )
+    schedule_parser.add_argument(
+        'start_date',
+        help='first date to publish, as YYYY-MM-DD',
+    )
+    schedule_parser.add_argument(
+        'post_file',
+        help='file containing plain posts',
+    )
+    schedule_parser.add_argument(
+        'schedule_file',
+        help='location to write schedule file',
+    )
+    schedule_parser.set_defaults(
+        func=do_schedule,
+    )
+
+
 def do_schedule(args):
     LOG.debug('building schedule for posts from %s', args.post_file)
     post_data = posts.load_posts(args.post_file)
