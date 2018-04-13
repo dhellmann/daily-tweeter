@@ -19,6 +19,7 @@ def safe_tweet(twitter, status, dupe_ok=True):
         if dupe_ok and e.api_code == 187:
             return False
         raise RuntimeError('API failure: {}'.format(e.reason))
+    return True
 
 
 def do_publish(args):
