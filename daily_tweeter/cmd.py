@@ -25,7 +25,10 @@ def safe_tweet(twitter, status, dupe_ok=True):
         raise RuntimeError('API failure: {}'.format(e.reason))
 
 
-def publish(args, post_data, twitter):
+def do_publish(args):
+    cfg = config.load_config(args.config_file)
+    twitter = client.get_client(cfg)
+    post_data = posts.load_posts(args.post_file)
     today = str(datetime.date.today())
     to_post = post_data['by-date'].get(today)
     if not to_post:
@@ -47,16 +50,6 @@ def main():
     )
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        '-c', '--config-file',
-        default=default_config_dir,
-        help='location of configuration file',
-    )
-    parser.add_argument(
-        '--repost-prefix',
-        default='Reposting:',
-        help='prefix for reposting',
-    )
-    parser.add_argument(
         '-v',
         action='store_true',
         dest='verbose',
@@ -69,10 +62,30 @@ def main():
         default=False,
         help='turn on debug mode',
     )
-    parser.add_argument(
+
+    subparsers = parser.add_subparsers(help='commands')
+
+    publish_parser = subparsers.add_parser(
+        'publish', help='publish a tweet',
+    )
+    publish_parser.add_argument(
+        '-c', '--config-file',
+        default=default_config_dir,
+        help='location of configuration file',
+    )
+    publish_parser.add_argument(
+        '--repost-prefix',
+        default='Reposting:',
+        help='prefix for reposting',
+    )
+    publish_parser.add_argument(
         'post_file',
         help='location of YAML file containing posts',
     )
+    publish_parser.set_defaults(
+        func=do_publish,
+    )
+
     args = parser.parse_args()
 
     logging.basicConfig(
@@ -82,10 +95,7 @@ def main():
     )
 
     try:
-        cfg = config.load_config(args.config_file)
-        twitter = client.get_client(cfg)
-        post_data = posts.load_posts(args.post_file)
-        publish(args, post_data, twitter)
+        args.func(args)
     except Exception as e:
         if args.debug:
             raise
