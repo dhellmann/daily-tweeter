@@ -28,6 +28,7 @@ def do_schedule(args):
             'date': str(the_date.date()),
             'message': post,
         })
+        the_date += increment
 
     LOG.debug('writing schedule to %s', args.schedule_file)
     with open(args.schedule_file, 'w', encoding='utf-8') as f:
