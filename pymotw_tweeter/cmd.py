@@ -3,6 +3,7 @@ import os.path
 
 import appdirs
 
+from pymotw_tweeter import client
 from pymotw_tweeter import config
 
 
@@ -21,5 +22,10 @@ def main():
 
     try:
         cfg = config.load_config(args.config_file)
+    except Exception as e:
+        parser.error(e)
+
+    try:
+        twitter = client.get_client(cfg)
     except Exception as e:
         parser.error(e)
