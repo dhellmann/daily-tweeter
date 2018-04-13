@@ -5,8 +5,8 @@ import yaml
 LOG = logging.getLogger(__name__)
 
 
-def load_posts(filename):
-    LOG.debug('reading post data from %s', filename)
+def load_schedule(filename):
+    LOG.debug('reading schedule from %s', filename)
     with open(filename, 'r', encoding='utf-8') as f:
         data = yaml.safe_load(f.read())
     if data is None:
@@ -20,4 +20,13 @@ def load_posts(filename):
         p['date']: p['message']
         for p in posts
     }
+    return data
+
+
+def load_posts(filename):
+    LOG.debug('reading posts from %s', filename)
+    with open(filename, 'r', encoding='utf-8') as f:
+        data = yaml.safe_load(f.read())
+    if data is None:
+        data = []
     return data

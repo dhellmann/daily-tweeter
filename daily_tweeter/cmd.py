@@ -1,46 +1,16 @@
 import argparse
-import datetime
 import logging
 import os.path
 import sys
 
 from daily_tweeter import client
 from daily_tweeter import config
-from daily_tweeter import posts
+from daily_tweeter import publish
+from daily_tweeter import schedule
 
 import appdirs
-import tweepy
 
 LOG = logging.getLogger(__name__)
-
-
-def safe_tweet(twitter, status, dupe_ok=True):
-    LOG.debug('posting %r', status)
-    try:
-        twitter.update_status(status=status)
-    except tweepy.error.TweepError as e:
-        LOG.debug('failed: %s', e.reason)
-        if dupe_ok and e.api_code == 187:
-            return False
-        raise RuntimeError('API failure: {}'.format(e.reason))
-
-
-def do_publish(args):
-    cfg = config.load_config(args.config_file)
-    twitter = client.get_client(cfg)
-    post_data = posts.load_posts(args.post_file)
-    today = str(datetime.date.today())
-    to_post = post_data['by-date'].get(today)
-    if not to_post:
-        LOG.debug('no post scheduled for %s', today)
-        return
-    if not safe_tweet(twitter, to_post):
-        # Duplicate
-        to_post = '{} {}'.format(
-            args.repost_prefix,
-            to_post,
-        )
-        safe_tweet(twitter, to_post, dupe_ok=False)
 
 
 def main():
@@ -79,11 +49,36 @@ def main():
         help='prefix for reposting',
     )
     publish_parser.add_argument(
-        'post_file',
-        help='location of YAML file containing posts',
+        'schedule_file',
+        help='location of schedule file containing posts',
     )
     publish_parser.set_defaults(
-        func=do_publish,
+        func=publish.do_publish,
+    )
+
+    schedule_parser = subparsers.add_parser(
+        'schedule', help='build a schedule file',
+    )
+    schedule_parser.add_argument(
+        '-f', '--frequency',
+        choices=('daily', 'weekly'),
+        default='daily',
+        help='how often to schedule posts',
+    )
+    schedule_parser.add_argument(
+        'start_date',
+        help='first date to publish, as YYYY-MM-DD',
+    )
+    schedule_parser.add_argument(
+        'post_file',
+        help='file containing plain posts',
+    )
+    schedule_parser.add_argument(
+        'schedule_file',
+        help='location to write schedule file',
+    )
+    schedule_parser.set_defaults(
+        func=schedule.do_schedule,
     )
 
     args = parser.parse_args()
