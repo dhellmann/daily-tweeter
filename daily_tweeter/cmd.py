@@ -3,13 +3,13 @@ import os.path
 
 import appdirs
 
-from pymotw_tweeter import client
-from pymotw_tweeter import config
+from daily_tweeter import client
+from daily_tweeter import config
 
 
 def main():
     default_config_dir = os.path.join(
-        appdirs.user_config_dir('pymotw-tweeter'),
+        appdirs.user_config_dir('daily-tweeter'),
         'config.ini',
     )
     parser = argparse.ArgumentParser()
