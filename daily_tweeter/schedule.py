@@ -1,5 +1,6 @@
 import datetime
 import logging
+import random
 
 from daily_tweeter import posts
 
@@ -17,6 +18,12 @@ def get_argparse(subparsers):
         choices=('daily', 'weekly'),
         default='daily',
         help='how often to schedule posts',
+    )
+    schedule_parser.add_argument(
+        '--shuffle',
+        default=False,
+        action='store_true',
+        help='randomize the post order',
     )
     schedule_parser.add_argument(
         'start_date',
@@ -40,6 +47,10 @@ def do_schedule(args):
     post_data = posts.load_posts(args.post_file)
     if not post_data:
         raise RuntimeError('There are no posts in {}'.format(filename))
+
+    if args.shuffle:
+        LOG.debug('shuffling posts')
+        random.shuffle(post_data)
 
     if args.frequency == 'daily':
         increment = datetime.timedelta(days=1)
