@@ -2,8 +2,6 @@ import argparse
 import logging
 import sys
 
-from daily_tweeter import client
-from daily_tweeter import config
 from daily_tweeter import publish
 from daily_tweeter import schedule
 
