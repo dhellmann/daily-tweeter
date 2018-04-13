@@ -14,6 +14,32 @@ import tweepy
 LOG = logging.getLogger(__name__)
 
 
+def safe_tweet(twitter, status, dupe_ok=True):
+    LOG.debug('posting %r', status)
+    try:
+        twitter.update_status(status=status)
+    except tweepy.error.TweepError as e:
+        LOG.debug('failed: %s', e.reason)
+        if dupe_ok and e.api_code == 187:
+            return False
+        raise RuntimeError('API failure: {}'.format(e.reason))
+
+
+def publish(args, post_data, twitter):
+    today = str(datetime.date.today())
+    to_post = post_data['by-date'].get(today)
+    if not to_post:
+        LOG.debug('no post scheduled for %s', today)
+        return
+    if not safe_tweet(twitter, to_post):
+        # Duplicate
+        to_post = '{} {}'.format(
+            args.repost_prefix,
+            to_post,
+        )
+        safe_tweet(twitter, to_post, dupe_ok=False)
+
+
 def main():
     default_config_dir = os.path.join(
         appdirs.user_config_dir('daily-tweeter'),
@@ -38,6 +64,12 @@ def main():
         help='turn on verbose output',
     )
     parser.add_argument(
+        '--debug',
+        action='store_true',
+        default=False,
+        help='turn on debug mode',
+    )
+    parser.add_argument(
         'post_file',
         help='location of YAML file containing posts',
     )
@@ -51,31 +83,10 @@ def main():
 
     try:
         cfg = config.load_config(args.config_file)
-    except Exception as e:
-        parser.error(e)
-
-    try:
         twitter = client.get_client(cfg)
+        post_data = posts.load_posts(args.post_file)
+        publish(args, post_data, twitter)
     except Exception as e:
+        if args.debug:
+            raise
         parser.error(e)
-
-    post_data = posts.load_posts(args.post_file)
-    today = str(datetime.date.today())
-    print(post_data, today)
-    to_post = post_data['by-date'].get(today)
-    if not to_post:
-        LOG.debug('no post scheduled for %s', today)
-    else:
-        LOG.debug('posting %r', to_post)
-        try:
-            twitter.update_status(status=to_post)
-        except tweepy.error.TweepError as e:
-            if e.api_code == 187:
-                # Duplicate
-                to_post = '{} {}'.format(
-                    args.repost_prefix,
-                    to_post,
-                )
-                twitter.update_status(status=to_post)
-            else:
-                raise
