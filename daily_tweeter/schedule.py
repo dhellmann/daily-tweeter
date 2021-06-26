@@ -2,9 +2,9 @@ import datetime
 import logging
 import random
 
-from daily_tweeter import posts
-
 import yaml
+
+from daily_tweeter import posts
 
 LOG = logging.getLogger(__name__)
 
@@ -46,7 +46,7 @@ def do_schedule(args):
     LOG.debug('building schedule for posts from %s', args.post_file)
     post_data = posts.load_posts(args.post_file)
     if not post_data:
-        raise RuntimeError('There are no posts in {}'.format(filename))
+        raise RuntimeError('There are no posts in {}'.format(args.post_file))
 
     if args.shuffle:
         LOG.debug('shuffling posts')
